@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test of CSS3 animation</title>
+
+    <!-- Disable page scaling -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</head>
+<body>
+    <div id="map"></div>
+</body>
+</html>
+
+<link rel="stylesheet"
+      type="text/css"
+      href="../vendor/leaflet/dist/leaflet.css" />
+<link rel="stylesheet"
+      type="text/css"
+      href="styles/default.css" />
+<script type="text/javascript" src="../vendor/leaflet/dist/leaflet.js">
+</script>
+
+<style>
+    @keyframes bouncing {
+        from {
+            transform: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,100,100,0,1);
+        }
+        to {
+            transform: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,100,85,0,1);
+        }
+    }
+
+    @keyframes collapsing {
+        from {
+            transform: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,100,100,0,1);
+        }
+        to {
+            transform: matrix3d(1,0,0,0,0,0.7073170731707317,0,0,0,0,1,0,100,112,0,1);
+        }
+    }
+
+    .jump {
+        animation-name: bouncing;
+        animation-duration: 346ms;
+        animation-timing-function: ease;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+    }
+</style>
+
+<script type="text/javascript">
+    window.onload = () => {
+        var map = L.map('map').setView([48.847547, 2.351074], 14);
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            zoomControl: true,
+            maxZoom: 18
+        }).addTo(map);
+        var marker = L.marker([48.847547, 2.351074]).addTo(map);
+
+        marker.on('click', () => {
+            console.log('click');
+            marker._icon.classList.add('jump')
+        });
+    };
+</script>

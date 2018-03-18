@@ -332,37 +332,3 @@ export function calculateDelays(height, speed, prefix) {
 
     return delays;
 }
-
-/**
- * Calculates moveSteps, moveDelays, resizeSteps & resizeDelays for animation of supplied marker.
- *
- * Animation is defined by shifts of the marker from it's original position. Each step of the
- * animation is a shift of 1px.
- *
- * We define function f(x) - time of waiting between shift of x px and shift of x+1 px.
- *
- * We use for this the inverse function f(x) = a / x; where a is the animation speed and x is the
- * shift from original position in px.
- *
- * @param marker {Marker}  marker object
- * @return {Marker} the same updated marker
- */
-export function calculateTimeline(marker) {
-    const bouncingOptions = marker._bouncingOptions,
-        {bounceHeight, bounceSpeed, elastic} = bouncingOptions;
-
-    // Recalculate steps & delays of movement & resize animations
-    marker._bouncingMotion.moveSteps = calculateSteps(bounceHeight, 'moveSteps_');
-    marker._bouncingMotion.moveDelays = calculateDelays(bounceHeight, bounceSpeed, 'moveDelays_');
-
-    // Calculate resize steps & delays only if elastic animation is enabled
-    if (elastic) {
-        const {contractHeight, contractSpeed} = bouncingOptions;
-
-        marker._bouncingMotion.resizeSteps = calculateSteps(contractHeight, 'resizeSteps_');
-        marker._bouncingMotion.resizeDelays = calculateDelays(contractHeight, contractSpeed,
-            'resizeDelays_');
-    }
-
-    return marker;
-}

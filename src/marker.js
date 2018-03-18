@@ -1,10 +1,5 @@
-import L from 'leaflet';
-import {Marker} from 'leaflet';
-import {
-    calculateIconMovePoints,
-    calculateIconMoveTransforms, calculateIconResizeTransforms, calculateShadowMovePoints,
-    calculateShadowMoveTransforms
-} from './helpers';
+import L, {Marker} from 'leaflet';
+import {calculateTimeline, calculateTransforms3D, calculateTransformsNo3D} from './animations';
 
 /** Default bouncing animation properties. */
 const defaultBouncingOptions = {
@@ -69,7 +64,11 @@ Marker.prototype.setBouncingOptions = function(options) {
     calculateTimeline(this);
 
     // Recalculate transformations
-    calculateTransforms(this);
+    if (L.Browser.any3d) {
+        calculateTransforms3D(this);
+    } else {
+        calculateTransformsNo3D(this);
+    }
 
     return this;
 };
@@ -132,112 +131,4 @@ function stopEclusiveMarkerBouncing() {
             }
         }
     }
-}
-
-/**
- * Calculates moveSteps, moveDelays, resizeSteps & resizeDelays for animation of supplied marker.
- * @param marker {Marker}  marker object
- * @return {Marker} the same updated marker
- */
-function calculateTimeline(marker) {
-
-    /* Animation is defined by shifts of the marker from it's original position. Each step of the
-     * animation is a shift of 1px.
-     *
-     * We define function f(x) - time of waiting between shift of x px and shift of x+1 px.
-     *
-     * We use for this the inverse function f(x) = a / x; where a is the animation speed and x is
-     * the shift from original position in px.
-     */
-
-    // Recalculate steps & delays of movement & resize animations
-    marker._bouncingMotion.moveSteps = calculateSteps(
-        marker._bouncingOptions.bounceHeight, 'moveSteps_');
-
-    marker._bouncingMotion.moveDelays = calculateDelays(
-        marker._bouncingOptions.bounceHeight,
-        marker._bouncingOptions.bounceSpeed,
-        'moveDelays_');
-
-    // Calculate resize steps & delays only if elastic animation is enabled
-    if (marker._bouncingOptions.elastic) {
-        marker._bouncingMotion.resizeSteps = calculateSteps(
-            marker._bouncingOptions.contractHeight, 'resizeSteps_');
-
-        marker._bouncingMotion.resizeDelays = calculateDelays(
-            marker._bouncingOptions.contractHeight,
-            marker._bouncingOptions.contractSpeed,
-            'resizeDelays_');
-    }
-
-    return marker;
-}
-
-/**
- * Calculated the transformations of supplied marker.
- * @param marker {Marker}  marker object
- * @return {Marker} the same updated marker
- */
-function calculateTransforms(marker) {
-    if (L.Browser.any3d) {
-
-        // Calculate transforms for 3D browsers
-        let iconHeight;
-
-        if (marker.options.icon.options.iconSize) {
-            iconHeight = marker.options.icon.options.iconSize[1];
-        } else {
-            // To fix the case when icon is in _iconObj
-            iconHeight = marker._iconObj.options.iconSize[1];
-        }
-
-        // Calculate move transforms of icon
-        marker._bouncingMotion.iconMoveTransforms = calculateIconMoveTransforms(
-            marker._bouncingMotion.x,
-            marker._bouncingMotion.y,
-            marker._bouncingOptions.bounceHeight);
-
-        // Calculate resize transforms of icon
-        marker._bouncingMotion.iconResizeTransforms = calculateIconResizeTransforms(
-            marker._bouncingMotion.x,
-            marker._bouncingMotion.y,
-            iconHeight,
-            marker._bouncingOptions.contractHeight);
-
-        if (marker._shadow) {
-
-            // Calculate move transformations of shadow
-            marker._bouncingMotion.shadowMoveTransforms = calculateShadowMoveTransforms(
-                this._bouncingMotion.x,
-                this._bouncingMotion.y,
-                this._bouncingOptions.bounceHeight,
-                this._bouncingOptions.shadowAngle);
-
-            // Calculate resize transforms of shadow
-            // TODO: use function calculateShadowResizeTransforms
-            marker._bouncingMotion.shadowResizeTransforms = calculateIconResizeTransforms(
-                marker._bouncingMotion.x,
-                marker._bouncingMotion.y,
-                marker.options.icon.options.shadowSize[1],
-                marker._bouncingOptions.contractHeight);
-        }
-    } else {
-
-        // Calculate move points
-
-        // For the icon
-        marker._bouncingMotion.iconMovePoints = calculateIconMovePoints(
-            marker._bouncingMotion.x,
-            marker._bouncingMotion.y,
-            marker._bouncingOptions.bounceHeight);
-
-        // And for the shadow
-        marker._bouncingMotion.shadowMovePoints = calculateShadowMovePoints(
-            marker._bouncingMotion.x,
-            marker._bouncingMotion.y,
-            marker._bouncingOptions.bounceHeight,
-            marker._bouncingOptions.shadowAngle);
-    }
-
-    return marker;
 }
